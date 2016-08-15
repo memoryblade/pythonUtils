@@ -78,12 +78,12 @@ class DistributedDbHandler:
     def getHostAndPort(self, index):
         pass
 
-    def execute(self, func, key, argDict):
+    def execute(self, func, key, *args):
         try:
             index = self.getDistributedIndex(key)
             if self.dt.get(index) is None:
                 self.connect(index)
-            (sql, resultType, rowMapper) = func(argDict)
+            (sql, resultType, rowMapper) = func(args[0])
             if types.ListType == resultType:
                 return self.queryForList(sql=sql, index=index)
             elif types.NoneType == resultType:
@@ -167,14 +167,20 @@ class Ad:
         self.name = name
         self.aderId = aderId
 
-
-def getAdAbstract(argDict):
+# 对象封装列表
+def getAdAbstract(*args):
     return "SELECT ad.id,ad.name,ad.ader_id from brand_start_ad ad where ad.id=%s" % (
-    str(argDict["id"])), types.NoneType, AdMapper()
+    str(args[0])), types.NoneType, AdMapper()
 
-def getAdAbstract1(argDict):
+# 字典的列表
+def getAdAbstract1(*args):
     return "SELECT ad.id,ad.name,ad.ader_id from brand_start_ad ad where ad.id=%s" % (
-    str(argDict["id"])), types.NoneType, DictionaryRowMapper()
+    str(args[0])), types.NoneType, DictionaryRowMapper()
+
+# 返回一个row[]的列表
+def getAdAbstract2(*args):
+    return "SELECT ad.id,ad.name,ad.ader_id from brand_start_ad ad where ad.id=%s" % (
+    str(args[0])), types.ListType, None
 
 
 def getAdAderId(argDict):
@@ -188,16 +194,14 @@ def generateInSql(len):
 def main():
     dbhandler = MyDBHandler("name", "pass", "db", "utf8")
 
-    param = {}
-    param["id"] = 571715
     # 返回一个字典的列表
-    resultList = dbhandler.execute(func=getAdAbstract1, key=None, argDict=param)
-    # 直接包装
-    resultList = dbhandler.execute(func=getAdAbstract, key=None, argDict=param)
+    resultList = dbhandler.execute(getAdAbstract1, None, 571715)
+    # 对象封装列表
+    resultList = dbhandler.execute(getAdAbstract, None, 571715)
     # 返回一个row[]的列表
-    resultList = dbhandler.execute(func=getAdAbstract, key=None, argDict=param)
+    resultList = dbhandler.execute(getAdAbstract2, None, 571715)
     # 返回一个结果
-    result = dbhandler.execute(func=getAdAderId, key=None, argDict=param)
+    result = dbhandler.execute(getAdAderId, None, 571715)
 
 
 if __name__ == "__main__":
