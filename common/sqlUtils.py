@@ -78,12 +78,12 @@ class DistributedDbHandler:
     def getHostAndPort(self, index):
         pass
 
-    def execute(self, func, key, argDict, resultType=None, rowMapper=None):
+    def execute(self, func, key, argDict):
         try:
             index = self.getDistributedIndex(key)
             if self.dt.get(index) is None:
                 self.connect(index)
-            sql = func(argDict)
+            (sql, resultType, rowMapper) = func(argDict)
             if types.ListType == resultType:
                 return self.queryForList(sql=sql, index=index)
             elif types.NoneType == resultType:
@@ -169,11 +169,16 @@ class Ad:
 
 
 def getAdAbstract(argDict):
-    return "SELECT ad.id,ad.name,ad.ader_id from ad ad where ad.id=%s" % (str(argDict["id"]))
+    return "SELECT ad.id,ad.name,ad.ader_id from brand_start_ad ad where ad.id=%s" % (
+    str(argDict["id"])), types.NoneType, AdMapper()
+
+def getAdAbstract1(argDict):
+    return "SELECT ad.id,ad.name,ad.ader_id from brand_start_ad ad where ad.id=%s" % (
+    str(argDict["id"])), types.NoneType, DictionaryRowMapper()
 
 
 def getAdAderId(argDict):
-    return "SELECT ad.ader_id from ad ad where ad.id=%s" % (str(argDict["id"]))
+    return "SELECT ad.ader_id from brand_start_ad ad where ad.id=%s" % (str(argDict["id"])), types.LongType, None
 
 
 def generateInSql(len):
@@ -186,15 +191,13 @@ def main():
     param = {}
     param["id"] = 571715
     # 返回一个字典的列表
-    resultList = dbhandler.execute(func=getAdAbstract, key=None, argDict=param, resultType=types.NoneType,
-                                         rowMapper=DictionaryRowMapper())
-    # 对象列表
-    resultList = dbhandler.execute(func=getAdAbstract, key=None, argDict=param, resultType=types.NoneType,
-                                         rowMapper=AdMapper())
+    resultList = dbhandler.execute(func=getAdAbstract1, key=None, argDict=param)
+    # 直接包装
+    resultList = dbhandler.execute(func=getAdAbstract, key=None, argDict=param)
     # 返回一个row[]的列表
-    resultList = dbhandler.execute(func=getAdAbstract, key=None, argDict=param, resultType=types.ListType)
+    resultList = dbhandler.execute(func=getAdAbstract, key=None, argDict=param)
     # 返回一个结果
-    result = dbhandler.execute(func=getAdAderId, key=None, argDict=param, resultType=types.LongType)
+    result = dbhandler.execute(func=getAdAderId, key=None, argDict=param)
 
 
 if __name__ == "__main__":
