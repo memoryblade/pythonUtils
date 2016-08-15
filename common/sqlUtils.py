@@ -83,7 +83,7 @@ class DistributedDbHandler:
             index = self.getDistributedIndex(key)
             if self.dt.get(index) is None:
                 self.connect(index)
-            (sql, resultType, rowMapper) = func(args[0])
+            (sql, resultType, rowMapper) = func(args)
             if types.ListType == resultType:
                 return self.queryForList(sql=sql, index=index)
             elif types.NoneType == resultType:
@@ -168,23 +168,23 @@ class Ad:
         self.aderId = aderId
 
 # 对象封装列表
-def getAdAbstract(*args):
+def getAdAbstract(args):
     return "SELECT ad.id,ad.name,ad.ader_id from brand_start_ad ad where ad.id=%s" % (
     str(args[0])), types.NoneType, AdMapper()
 
 # 字典的列表
-def getAdAbstract1(*args):
+def getAdAbstract1(args):
     return "SELECT ad.id,ad.name,ad.ader_id from brand_start_ad ad where ad.id=%s" % (
     str(args[0])), types.NoneType, DictionaryRowMapper()
 
 # 返回一个row[]的列表
-def getAdAbstract2(*args):
+def getAdAbstract2(args):
     return "SELECT ad.id,ad.name,ad.ader_id from brand_start_ad ad where ad.id=%s" % (
     str(args[0])), types.ListType, None
 
 
-def getAdAderId(argDict):
-    return "SELECT ad.ader_id from brand_start_ad ad where ad.id=%s" % (str(argDict["id"])), types.LongType, None
+def getAdAderId(args):
+    return "SELECT ad.ader_id from brand_start_ad ad where ad.id=%s" % (str(args[0])), types.LongType, None
 
 
 def generateInSql(len):
